@@ -1,0 +1,23 @@
+{
+    "name": "uStates",
+    "version": "0.1-dev",
+    "description": "Simple library for state management in microcontroller applications",
+    "keywords": "state, state machine",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/rj79/uStates.git"
+    },
+    "authors": [
+        {
+            "name": "Robert Johansson",
+            "email": "robertrockar@live.com",
+            "url": "",
+            "maintainer": true
+        }
+    ],
+    "license": "MIT",
+    "homepage": "",
+    "dependencies": {},
+    "frameworks": "*",
+    "platforms": "*"
+}
