@@ -2,7 +2,7 @@
 
 const uint8_t INVALID_STATE = 255;
 
-#ifndef SERIAL_DEBUG
+#ifdef SERIAL_DEBUG
 #define SERIAL_PRINTLN(x) Serial.println(x)
 #else
 #define SERIAL_PRINTLN(x) ;
