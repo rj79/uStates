@@ -26,14 +26,16 @@ public:
     bool requestState(uint8_t state_id);
 
     IState* addState(uint8_t state_id, IState* state, String name="");
-    
+    uint8_t getStateId() const;
     void setPreLoopHook(Callback);
     void setPostLoopHook(Callback);
-    void loop();
+    void loop();    
 
 private:
-    IState* RequestedState;
     IState* State;
+    uint8_t StateId;
+    uint8_t RequestedStateId;
+    uint8_t StateIndex;    
     StateEntry States[MAX_STATES];
     Callback PreLoopHook;
     Callback PostLoopHook;

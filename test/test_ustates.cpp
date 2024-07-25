@@ -38,6 +38,7 @@ void test_one_state()
   handler.requestState(1);
   handler.loop();
   
+  TEST_ASSERT_EQUAL_INT8(1, handler.getStateId());
   TEST_ASSERT_EQUAL_STRING("state1::stateEnter", state.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state.pop().c_str());
 }
@@ -54,14 +55,18 @@ void test_two_states()
   
   handler.requestState(1);
   handler.loop();
+  TEST_ASSERT_EQUAL_INT8(1, handler.getStateId());
   TEST_ASSERT_EQUAL_STRING("state1::stateEnter", state1.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state1.pop().c_str());
 
   handler.loop();
+  TEST_ASSERT_EQUAL_INT8(1, handler.getStateId());
   TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state1.pop().c_str());
 
   handler.requestState(2);
+  TEST_ASSERT_EQUAL_INT8(1, handler.getStateId());
   handler.loop();
+  TEST_ASSERT_EQUAL_INT8(2, handler.getStateId());
   TEST_ASSERT_EQUAL_STRING("state1::stateExit", state1.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state2::stateEnter", state1.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state2::stateLoop", state1.pop().c_str());
