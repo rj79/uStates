@@ -73,6 +73,18 @@ void test_two_states()
 
 }
 
+void test_cant_add_same_id_twice()
+{
+  StateHandler handler;
+  StringFifo fifo;
+  MockState state(&handler, "state1", fifo);
+  MockState state2(&handler, "state2", fifo);
+
+  TEST_ASSERT_EQUAL(&state, handler.addState(1, &state, "state1"));
+  TEST_ASSERT_EQUAL(nullptr, handler.addState(1, &state, "duplicate"));
+  TEST_ASSERT_EQUAL(nullptr, handler.addState(1, &state2, "another duplicate"));
+}
+
 int runUnityTests(void) 
 {
   UNITY_BEGIN();
@@ -81,6 +93,7 @@ int runUnityTests(void)
   RUN_TEST(test_create);
   RUN_TEST(test_one_state);
   RUN_TEST(test_two_states);
+  RUN_TEST(test_cant_add_same_id_twice);
   return UNITY_END();
 }
 

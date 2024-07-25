@@ -42,6 +42,14 @@ IState* StateHandler::addState(uint8_t state_id, IState *state, String name)
         SERIAL_PRINTLN("Error: Invalid state id requested.");
         return nullptr;
     }
+    
+    for (int i = 0; i < MAX_STATES; ++i) {
+        if (States[i].Id == state_id) {
+            SERIAL_PRINTLN("Error: id already added");
+            return nullptr;
+        }
+    }
+    
     for (int i = 0; i < MAX_STATES; ++i) {
         if (States[i].State == nullptr) {
             States[i].Id = state_id;
