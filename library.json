@@ -1,6 +1,6 @@
 {
     "name": "uStates",
-    "version": "0.1-dev",
+    "version": "0.1.1",
     "description": "Simple library for state management in microcontroller applications",
     "keywords": "state, state machine",
     "repository": {

@@ -11,6 +11,7 @@ const uint8_t INVALID_STATE_ID = 255;
 StateHandler::StateHandler() : State(nullptr),
                                StateId(INVALID_STATE_ID),
                                RequestedStateId(INVALID_STATE_ID),                                                              
+                               StateIndex(0),
                                PreLoopHook(nullptr),
                                PostLoopHook(nullptr)
 {
