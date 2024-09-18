@@ -23,7 +23,7 @@ StateHandler::StateHandler() : State(nullptr),
 bool StateHandler::requestState(uint8_t state_id)
 {
     if (state_id == INVALID_STATE_ID) {
-        Serial.println("Error: Invalid state id requested.");
+        SERIAL_PRINTLN("Error: Invalid state id requested.");
         return false;
     }
     for (int i = 0; i < MAX_STATES; ++i) {
