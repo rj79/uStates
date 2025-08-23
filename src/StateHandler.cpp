@@ -3,9 +3,20 @@
 const uint8_t INVALID_STATE_ID = 255;
 
 #ifdef SERIAL_DEBUG
-#define SERIAL_PRINTLN(x) Serial.println(x)
+
+void serial_println(const char* fmt, ...)
+{
+    char buffer[256];
+    va_list args;
+    va_start(args, fmt);
+    int rc = vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+    Serial.println(buffer);
+}
+
+#define SERIAL_PRINTLN(...) { serial_println(__VA_ARGS__); }
 #else
-#define SERIAL_PRINTLN(x) ;
+#define SERIAL_PRINTLN(...) ;
 #endif
 
 StateHandler::StateHandler() : State(nullptr),
@@ -24,7 +35,7 @@ StateHandler::StateHandler() : State(nullptr),
 bool StateHandler::requestState(uint8_t state_id)
 {
     if (state_id == INVALID_STATE_ID) {
-        SERIAL_PRINTLN("Error: Invalid state id requested.");
+        SERIAL_PRINTLN("Error: Invalid state id %d requested.", state_id);
         return false;
     }
     for (int i = 0; i < MAX_STATES; ++i) {
@@ -40,13 +51,13 @@ bool StateHandler::requestState(uint8_t state_id)
 IState* StateHandler::addState(uint8_t state_id, IState *state, String name)
 {
     if (state_id == INVALID_STATE_ID) {
-        SERIAL_PRINTLN("Error: Invalid state id requested.");
+        SERIAL_PRINTLN("Error: Invalid state id %d requested.", state_id);
         return nullptr;
     }
     
     for (int i = 0; i < MAX_STATES; ++i) {
         if (States[i].Id == state_id) {
-            SERIAL_PRINTLN("Error: id already added");
+            SERIAL_PRINTLN("Error: id %d already added", state_id);
             return nullptr;
         }
     }
@@ -90,12 +101,12 @@ void StateHandler::loop()
 
     if (RequestedStateId != StateId) {
         if (State != nullptr) {
-            SERIAL_PRINTLN((String("Exiting") + State->toString()).c_str());
+            SERIAL_PRINTLN("Exiting state \"%s\"", State->toString().c_str());
             State->stateExit();
         }
         State = States[StateIndex].State;
         if (State != nullptr) {
-            SERIAL_PRINTLN((String("Entering") + State->toString()).c_str());
+            SERIAL_PRINTLN("Entering state \"%s\"", State->toString().c_str());
             StateId = RequestedStateId;
             State->stateEnter();
         }
@@ -109,3 +120,4 @@ void StateHandler::loop()
         PostLoopHook();
     }
 }
+
