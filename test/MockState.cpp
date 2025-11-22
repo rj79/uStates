@@ -33,3 +33,8 @@ String MockState::pop()
 {
     return Fifo.Pop();    
 }
+
+bool MockState::hasEvent() const
+{
+    return !Fifo.IsEmpty();
+}

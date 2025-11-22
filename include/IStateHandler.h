@@ -8,6 +8,7 @@ class IStateHandler
 public:
     virtual ~IStateHandler() { /* Empty */ };
     virtual bool requestState(uint8_t state_id) = 0;
+    virtual bool requestLastState() = 0;
 };
 
 #endif

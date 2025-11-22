@@ -1,7 +1,5 @@
 #include "StateHandler.h"
 
-const uint8_t INVALID_STATE_ID = 255;
-
 #ifdef SERIAL_DEBUG
 
 void serial_println(const char* fmt, ...)
@@ -20,21 +18,22 @@ void serial_println(const char* fmt, ...)
 #endif
 
 StateHandler::StateHandler() : State(nullptr),
-                               StateId(INVALID_STATE_ID),
-                               RequestedStateId(INVALID_STATE_ID),                                                              
+                               StateId(UNDEFINED_STATE),
+                               RequestedStateId(UNDEFINED_STATE),
+                               LastStateId(UNDEFINED_STATE),                                                              
                                StateIndex(0),
                                PreLoopHook(nullptr),
                                PostLoopHook(nullptr)
 {
     for (int i = 0; i < MAX_STATES; ++i) {
-        States[i].Id = INVALID_STATE_ID;
+        States[i].Id = UNDEFINED_STATE;
         States[i].State = nullptr;
     }
 }
 
 bool StateHandler::requestState(uint8_t state_id)
 {
-    if (state_id == INVALID_STATE_ID) {
+    if (state_id == UNDEFINED_STATE) {
         SERIAL_PRINTLN("Error: Invalid state id %d requested.", state_id);
         return false;
     }
@@ -48,10 +47,15 @@ bool StateHandler::requestState(uint8_t state_id)
     return false;
 }
 
+bool StateHandler::requestLastState()
+{
+    return requestState(LastStateId);
+}
+
 IState* StateHandler::addState(uint8_t state_id, IState *state, String name)
 {
-    if (state_id == INVALID_STATE_ID) {
-        SERIAL_PRINTLN("Error: Invalid state id %d requested.", state_id);
+    if (state_id == UNDEFINED_STATE) {
+        SERIAL_PRINTLN("Error: Invalid state id %d.", state_id);
         return nullptr;
     }
     
@@ -90,7 +94,7 @@ void StateHandler::setPostLoopHook(Callback callback)
 
 void StateHandler::loop()
 {
-    if (RequestedStateId == INVALID_STATE_ID) {
+    if (RequestedStateId == UNDEFINED_STATE) {
         SERIAL_PRINTLN("Error: No state requested.");
         return;
     }
@@ -107,6 +111,7 @@ void StateHandler::loop()
         State = States[StateIndex].State;
         if (State != nullptr) {
             SERIAL_PRINTLN("Entering state \"%s\"", State->toString().c_str());
+            LastStateId = StateId;
             StateId = RequestedStateId;
             State->stateEnter();
         }

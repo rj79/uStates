@@ -17,6 +17,7 @@ public:
     ~StringFifo();
     void Push(String text);
     String Pop();
+    bool IsEmpty() const;
 };
 
 #endif

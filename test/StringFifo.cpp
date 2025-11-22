@@ -43,3 +43,8 @@ String StringFifo::Pop()
     }
     return result;
 }
+
+bool StringFifo::IsEmpty() const
+{
+    return Usage == 0;
+}

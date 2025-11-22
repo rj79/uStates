@@ -18,6 +18,7 @@ public:
     const String toString() const;
 
     String pop();
+    bool hasEvent() const;
 };
 
 #endif
