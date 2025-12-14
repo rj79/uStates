@@ -8,7 +8,7 @@ class IState
 public:
     virtual ~IState() { /* Empty */ };
     
-    virtual void stateEnter() = 0;
+    virtual void stateEnter(uint8_t fromState, void* userData) = 0;
     virtual void stateLoop() = 0;
     virtual void stateExit() = 0;
 

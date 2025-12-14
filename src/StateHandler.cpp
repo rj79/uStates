@@ -20,7 +20,8 @@ void serial_println(const char* fmt, ...)
 StateHandler::StateHandler() : State(nullptr),
                                StateId(UNDEFINED_STATE),
                                RequestedStateId(UNDEFINED_STATE),
-                               LastStateId(UNDEFINED_STATE),                                                              
+                               LastStateId(UNDEFINED_STATE),
+                               UserData(nullptr),
                                StateIndex(0),
                                PreLoopHook(nullptr),
                                PostLoopHook(nullptr)
@@ -31,7 +32,7 @@ StateHandler::StateHandler() : State(nullptr),
     }
 }
 
-bool StateHandler::requestState(uint8_t state_id)
+bool StateHandler::requestState(uint8_t state_id, void* userData)
 {
     if (state_id == UNDEFINED_STATE) {
         SERIAL_PRINTLN("Error: Invalid state id %d requested.", state_id);
@@ -41,6 +42,7 @@ bool StateHandler::requestState(uint8_t state_id)
         if (States[i].Id == state_id) {
             RequestedStateId = state_id;
             StateIndex = i;
+            UserData = userData;
             return true;
         }
     }
@@ -49,7 +51,7 @@ bool StateHandler::requestState(uint8_t state_id)
 
 bool StateHandler::requestLastState()
 {
-    return requestState(LastStateId);
+    return requestState(LastStateId, nullptr);
 }
 
 IState* StateHandler::addState(uint8_t state_id, IState *state, String name)
@@ -113,7 +115,8 @@ void StateHandler::loop()
             SERIAL_PRINTLN("Entering state \"%s\"", State->toString().c_str());
             LastStateId = StateId;
             StateId = RequestedStateId;
-            State->stateEnter();
+            State->stateEnter(LastStateId, UserData);
+            UserData = nullptr;
         }
     }
 
