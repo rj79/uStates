@@ -17,12 +17,10 @@ void serial_println(const char* fmt, ...)
 #define SERIAL_PRINTLN(...) ;
 #endif
 
-StateHandler::StateHandler() : State(nullptr),
-                               StateId(UNDEFINED_STATE),
-                               RequestedStateId(UNDEFINED_STATE),
-                               LastStateId(UNDEFINED_STATE),
+StateHandler::StateHandler() : CurrentState(nullptr),
+                               RequestedState(nullptr),
+                               LastState(nullptr),
                                UserData(nullptr),
-                               StateIndex(0),
                                PreLoopHook(nullptr),
                                PostLoopHook(nullptr)
 {
@@ -40,8 +38,7 @@ bool StateHandler::requestState(uint8_t state_id, void* userData)
     }
     for (int i = 0; i < MAX_STATES; ++i) {
         if (States[i].Id == state_id) {
-            RequestedStateId = state_id;
-            StateIndex = i;
+            RequestedState = &States[i];
             UserData = userData;
             return true;
         }
@@ -51,11 +48,19 @@ bool StateHandler::requestState(uint8_t state_id, void* userData)
 
 bool StateHandler::requestLastState()
 {
-    return requestState(LastStateId, nullptr);
+    if (LastState) {
+        return requestState(LastState->Id, nullptr);
+    }
+    return false;
 }
 
 IState* StateHandler::addState(uint8_t state_id, IState *state, String name)
 {
+    if (state == nullptr) {
+        SERIAL_PRINTLN("Error: State can't be nullptr.");
+        return nullptr;
+    }
+
     if (state_id == UNDEFINED_STATE) {
         SERIAL_PRINTLN("Error: Invalid state id %d.", state_id);
         return nullptr;
@@ -81,7 +86,10 @@ IState* StateHandler::addState(uint8_t state_id, IState *state, String name)
 
 uint8_t StateHandler::getStateId() const
 {
-    return StateId;
+    if (CurrentState) {
+        return CurrentState->Id;
+    }
+    return UNDEFINED_STATE;
 }
 
 void StateHandler::setPreLoopHook(Callback callback)
@@ -96,7 +104,7 @@ void StateHandler::setPostLoopHook(Callback callback)
 
 void StateHandler::loop()
 {
-    if (RequestedStateId == UNDEFINED_STATE) {
+    if (RequestedState == nullptr) {
         SERIAL_PRINTLN("Error: No state requested.");
         return;
     }
@@ -104,28 +112,27 @@ void StateHandler::loop()
     if (PreLoopHook != nullptr) {
         PreLoopHook();
     }
-
-    if (RequestedStateId != StateId) {
-        if (State != nullptr) {
-            SERIAL_PRINTLN("Exiting state \"%s\"", State->Name.c_str());
-            State->stateExit();
+ 
+    if (RequestedState != CurrentState) {
+        if (CurrentState != nullptr) {
+            SERIAL_PRINTLN("Exiting state \"%s\"", CurrentState->Name.c_str());
+            CurrentState->State->stateExit();
         }
-        State = States[StateIndex].State;
-        if (State != nullptr) {
-            SERIAL_PRINTLN("Entering state \"%s\"", State->Name.c_str());
-            LastStateId = StateId;
-            StateId = RequestedStateId;
-            State->stateEnter(LastStateId, UserData);
+        LastState = CurrentState;
+        CurrentState = RequestedState;
+        if (CurrentState != nullptr) {
+            SERIAL_PRINTLN("Entering state \"%s\"", CurrentState->Name.c_str());
+            uint8_t lastStateId = LastState == nullptr ? UNDEFINED_STATE : LastState->Id;
+            CurrentState->State->stateEnter(lastStateId, UserData);
             UserData = nullptr;
         }
     }
 
-    if (State != nullptr) {
-        State->stateLoop();
+    if (CurrentState != nullptr) {
+        CurrentState->State->stateLoop();
     }
 
     if (PostLoopHook != nullptr) {
         PostLoopHook();
     }
 }
-

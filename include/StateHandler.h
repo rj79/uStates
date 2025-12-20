@@ -11,7 +11,7 @@
 
 const uint8_t UNDEFINED_STATE = 255;
 
-typedef void (*Callback)(void);
+using Callback = void (*)();
 
 struct StateEntry
 {
@@ -35,12 +35,10 @@ public:
     void loop();    
 
 private:
-    IState* State;
-    uint8_t StateId;
-    uint8_t RequestedStateId;
-    uint8_t LastStateId;
+    StateEntry* CurrentState;
+    StateEntry* RequestedState;
+    StateEntry* LastState;
     void* UserData;
-    uint8_t StateIndex;    
     StateEntry States[MAX_STATES];
     Callback PreLoopHook;
     Callback PostLoopHook;
