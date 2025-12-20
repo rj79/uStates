@@ -27,7 +27,7 @@ public:
     void stateLoop()
     {
         if (millis() - EnterTime > 5000) {
-            States->requestState(STATE_BLINK);
+            States->requestState(STATE_ON);
         }
     };
 
