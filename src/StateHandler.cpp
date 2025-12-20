@@ -112,7 +112,7 @@ void StateHandler::loop()
         }
         State = States[StateIndex].State;
         if (State != nullptr) {
-            SERIAL_PRINTLN("Entering state \"%s\"", State->Names.c_str());
+            SERIAL_PRINTLN("Entering state \"%s\"", State->Name.c_str());
             LastStateId = StateId;
             StateId = RequestedStateId;
             State->stateEnter(LastStateId, UserData);
