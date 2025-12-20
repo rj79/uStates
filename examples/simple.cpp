@@ -19,7 +19,7 @@ public:
         // Empty
     }
 
-    void stateEnter()
+    void stateEnter(uint8_t fromState, void* userData)
     {
         EnterTime = millis();
     }
@@ -45,7 +45,7 @@ public:
         // Empty
     }
 
-    void stateEnter() {
+    void stateEnter(uint8_t fromState, void* userData) {
         EnterTime = millis();
     }
 
