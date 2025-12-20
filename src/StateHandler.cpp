@@ -105,12 +105,12 @@ void StateHandler::loop()
 
     if (RequestedStateId != StateId) {
         if (State != nullptr) {
-            SERIAL_PRINTLN("Exiting state \"%s\"", State->toString().c_str());
+            SERIAL_PRINTLN("Exiting state \"%s\"", State->Name.c_str());
             State->stateExit();
         }
         State = States[StateIndex].State;
         if (State != nullptr) {
-            SERIAL_PRINTLN("Entering state \"%s\"", State->toString().c_str());
+            SERIAL_PRINTLN("Entering state \"%s\"", State->Names.c_str());
             LastStateId = StateId;
             StateId = RequestedStateId;
             State->stateEnter();

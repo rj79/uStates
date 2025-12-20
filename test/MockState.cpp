@@ -23,12 +23,6 @@ void MockState::stateExit()
     Fifo.Push(Name + "::stateExit");    
 }
 
-const String MockState::toString() const
-{
-    std::cout << "MockState::toString" << std::endl;
-    return Name;
-}
-
 String MockState::pop()
 {
     return Fifo.Pop();    

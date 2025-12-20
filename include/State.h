@@ -14,7 +14,6 @@ public:
     void stateEnter();
     void stateLoop();
     void stateExit();
-    const String toString() const;
 };
 
 #endif

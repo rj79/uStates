@@ -20,9 +20,3 @@ void State::stateExit()
 {
     // Override in subclass
 }
-
-const String State::toString() const
-{
-    // Override in subclass
-    return "";
-}

@@ -15,7 +15,6 @@ public:
     void stateEnter();
     void stateLoop();
     void stateExit();
-    const String toString() const;
 
     String pop();
     bool hasEvent() const;
