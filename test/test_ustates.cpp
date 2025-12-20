@@ -2,6 +2,26 @@
 #include "StateHandler.h"
 #include "MockState.h"
 #include "StringFifo.h"
+#include <stdio.h>
+
+int preLoopCount = 0;
+int postLoopCount = 0;
+
+void preLoopCallback()
+{
+  preLoopCount++;
+}
+
+void postLoopCallback()
+{
+  postLoopCount++;
+}
+
+void setUp()
+{
+  preLoopCount = 0;
+  postLoopCount = 0;
+}
 
 void test_string_fifo_one_element()
 {
@@ -190,9 +210,32 @@ void test_userdata_is_not_used_for_request_last_state()
   TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state1.pop().c_str());
 }
 
+void test_pre_and_post_loop_hooks()
+{
+  StateHandler handler;
+  StringFifo fifo;
+  MockState state1(&handler, "state1", fifo);
+
+  handler.setPreLoopHook(preLoopCallback);
+  handler.setPostLoopHook(postLoopCallback);
+  handler.addState(1, &state1, "state1");
+  handler.requestState(1);
+  
+  handler.loop();
+
+  TEST_ASSERT_EQUAL(1, preLoopCount);
+  TEST_ASSERT_EQUAL(1, postLoopCount);
+
+  handler.loop();
+
+  TEST_ASSERT_EQUAL(2, preLoopCount);
+  TEST_ASSERT_EQUAL(2, postLoopCount);
+}
+
 int runUnityTests(void) 
 {
   UNITY_BEGIN();
+
   RUN_TEST(test_string_fifo_one_element);
   RUN_TEST(test_string_fifo_fill_empty);
   RUN_TEST(test_create);
@@ -202,6 +245,8 @@ int runUnityTests(void)
   RUN_TEST(test_request_last_state);
   RUN_TEST(test_send_userdata);
   RUN_TEST(test_userdata_is_not_used_for_request_last_state);
+  RUN_TEST(test_pre_and_post_loop_hooks);
+
   return UNITY_END();
 }
 
