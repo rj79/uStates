@@ -25,7 +25,7 @@ class StateHandler : public IStateHandler
 public:
     StateHandler();
 
-    bool requestState(uint8_t state_id) override;
+    bool requestState(uint8_t state_id, void* userData=nullptr) override;
     bool requestLastState() override;
 
     IState* addState(uint8_t state_id, IState* state, String name="");
@@ -39,6 +39,7 @@ private:
     uint8_t StateId;
     uint8_t RequestedStateId;
     uint8_t LastStateId;
+    void* UserData;
     uint8_t StateIndex;    
     StateEntry States[MAX_STATES];
     Callback PreLoopHook;

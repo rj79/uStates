@@ -31,14 +31,17 @@ void test_create()
 void test_one_state()
 {
   StateHandler handler;
+  IStateHandler* ifcHandler = &handler;
   StringFifo fifo;
   MockState state(&handler, "state1", fifo);
 
   TEST_ASSERT_EQUAL(&state, handler.addState(1, &state, "state1"));
-  handler.requestState(1);
+  ifcHandler->requestState(1);
   handler.loop();
   
   TEST_ASSERT_EQUAL_INT8(1, handler.getStateId());
+  TEST_ASSERT_EQUAL_INT8(UNDEFINED_STATE, state.getFromState());
+  TEST_ASSERT_EQUAL_PTR(nullptr, state.getUserData());
   TEST_ASSERT_EQUAL_STRING("state1::stateEnter", state.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state.pop().c_str());
 }
@@ -56,21 +59,27 @@ void test_two_states()
   handler.requestState(1);
   handler.loop();
   TEST_ASSERT_EQUAL_INT8(1, handler.getStateId());
+  TEST_ASSERT_EQUAL_INT8(UNDEFINED_STATE, state1.getFromState());
+  TEST_ASSERT_EQUAL_PTR(nullptr, state1.getUserData()); 
   TEST_ASSERT_EQUAL_STRING("state1::stateEnter", state1.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state1.pop().c_str());
 
   handler.loop();
   TEST_ASSERT_EQUAL_INT8(1, handler.getStateId());
+  TEST_ASSERT_EQUAL_INT8(UNDEFINED_STATE, state1.getFromState());
+  TEST_ASSERT_EQUAL_PTR(nullptr, state1.getUserData()); 
   TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state1.pop().c_str());
 
   handler.requestState(2);
   TEST_ASSERT_EQUAL_INT8(1, handler.getStateId());
   handler.loop();
   TEST_ASSERT_EQUAL_INT8(2, handler.getStateId());
+  TEST_ASSERT_EQUAL_INT8(UNDEFINED_STATE, state1.getFromState());
+  TEST_ASSERT_EQUAL_INT8(1, state2.getFromState());
+  TEST_ASSERT_EQUAL_PTR(nullptr, state2.getUserData());
   TEST_ASSERT_EQUAL_STRING("state1::stateExit", state1.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state2::stateEnter", state1.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state2::stateLoop", state1.pop().c_str());
-
 }
 
 void test_cant_add_same_id_twice()
@@ -95,7 +104,7 @@ void test_request_last_state()
   handler.addState(1, &state1, "state1");
   handler.addState(2, &state2, "state2");
 
-  // First check that it is nit possible to request the last state
+  // First check that it is not possible to request the last state
   // if there was no last state.
   TEST_ASSERT_FALSE(handler.requestLastState());
   TEST_ASSERT_FALSE(state1.hasEvent());
@@ -108,7 +117,7 @@ void test_request_last_state()
   TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state1.pop().c_str());
   TEST_ASSERT_FALSE(state1.hasEvent());
 
-  // It still should not be possible to switbh back to last state since there is none.
+  // It still should not be possible to switch back to last state since there is none.
   TEST_ASSERT_FALSE(handler.requestLastState());
   TEST_ASSERT_FALSE(state1.hasEvent());
   TEST_ASSERT_FALSE(state2.hasEvent());
@@ -117,6 +126,7 @@ void test_request_last_state()
   handler.requestState(2);
   handler.loop();
   TEST_ASSERT_EQUAL_INT8(2, handler.getStateId());
+  //TEST_ASSERT_EQUAL_INT8(1, state2.getFromState());
   TEST_ASSERT_EQUAL_STRING("state1::stateExit", state1.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state2::stateEnter", state2.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state2::stateLoop", state2.pop().c_str());
@@ -126,11 +136,58 @@ void test_request_last_state()
   // After being instate 2 it should be possible to return to state 1
   handler.requestLastState();
   handler.loop();
+  //TEST_ASSERT_EQUAL_INT8(2, state1.getFromState());
   TEST_ASSERT_EQUAL_STRING("state2::stateExit", state2.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state1::stateEnter", state1.pop().c_str());
   TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state1.pop().c_str());
   TEST_ASSERT_FALSE(state1.hasEvent());
   TEST_ASSERT_FALSE(state2.hasEvent());
+}
+
+void test_send_userdata()
+{
+  StateHandler handler;
+  StringFifo fifo;
+  MockState state(&handler, "state1", fifo);
+
+  TEST_ASSERT_EQUAL(&state, handler.addState(1, &state, "state1"));
+  char userData[] = "Hello";
+  handler.requestState(1, (void*)userData);
+  handler.loop();
+  
+  TEST_ASSERT_EQUAL_INT8(1, handler.getStateId());
+  TEST_ASSERT_EQUAL_INT8(UNDEFINED_STATE, state.getFromState());
+  TEST_ASSERT_EQUAL_PTR((void*)userData, state.getUserData());
+  TEST_ASSERT_EQUAL_STRING("state1::stateEnter", state.pop().c_str());
+  TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state.pop().c_str());
+}
+
+void test_userdata_is_not_used_for_request_last_state()
+{
+  StateHandler handler;
+  StringFifo fifo;
+  MockState state1(&handler, "state1", fifo);
+  MockState state2(&handler, "state2", fifo);
+
+  TEST_ASSERT_EQUAL(&state1, handler.addState(1, &state1, "state1"));
+  TEST_ASSERT_EQUAL(&state2, handler.addState(2, &state2, "state2"));
+  
+  char userData[] = "Hello";
+  handler.requestState(1, (void*)userData);
+  handler.loop();
+  handler.requestState(2, (void*)userData);  
+  handler.loop();
+  TEST_ASSERT_EQUAL_STRING("state1::stateEnter", state1.pop().c_str());
+  TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state1.pop().c_str());
+  TEST_ASSERT_EQUAL_STRING("state1::stateExit", state1.pop().c_str());
+  TEST_ASSERT_EQUAL_STRING("state2::stateEnter", state2.pop().c_str());
+  TEST_ASSERT_EQUAL_STRING("state2::stateLoop", state2.pop().c_str());
+  handler.requestLastState();
+  handler.loop();
+  TEST_ASSERT_EQUAL_PTR(nullptr, state1.getUserData());
+  TEST_ASSERT_EQUAL_STRING("state2::stateExit", state2.pop().c_str());
+  TEST_ASSERT_EQUAL_STRING("state1::stateEnter", state1.pop().c_str());
+  TEST_ASSERT_EQUAL_STRING("state1::stateLoop", state1.pop().c_str());
 }
 
 int runUnityTests(void) 
@@ -143,6 +200,8 @@ int runUnityTests(void)
   RUN_TEST(test_two_states);
   RUN_TEST(test_cant_add_same_id_twice);
   RUN_TEST(test_request_last_state);
+  RUN_TEST(test_send_userdata);
+  RUN_TEST(test_userdata_is_not_used_for_request_last_state);
   return UNITY_END();
 }
 

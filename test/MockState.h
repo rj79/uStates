@@ -10,13 +10,17 @@ private:
     IStateHandler* StateHandler;
     String Name;
     StringFifo& Fifo;
+    uint8_t FromState;
+    void* UserData;
 public: 
     MockState(IStateHandler* states, String name, StringFifo& fifo);
-    void stateEnter();
+    void stateEnter(uint8_t fromState, void* userData);
     void stateLoop();
     void stateExit();
 
     String pop();
+    uint8_t getFromState() const;
+    void* getUserData() const;
     bool hasEvent() const;
 };
 
